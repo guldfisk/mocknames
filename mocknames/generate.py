@@ -11,35 +11,34 @@ NOUN_PATH = os.path.join(PATH, 'nouns.txt')
 class NameGenerator(object):
 
     def __init__(self):
-        self._adjectives = [] #type: t.List[str]
-        self._nouns = [] #type: t.List[str]
+        self._adjectives = self._load_words(ADJECTIVE_PATH)
+        self._nouns = self._load_words(NOUN_PATH)
 
-        with open(ADJECTIVE_PATH, 'r') as f:
-            self._adjectives[:] = (
+    @classmethod
+    def _load_words(cls, path: str) -> t.List[str]:
+        with open(path, 'r') as f:
+            return [
                 line.rstrip()
                 for line in
                 f.readlines()
-            )
-        with open(NOUN_PATH, 'r') as f:
-            self._nouns[:] = (
-                line.rstrip()
-                for line in
-                f.readlines()
-            )
+            ]
 
-    def get_name(self, seed: int=None) -> str:
-        if seed is not None:
-            previous_state = random.getstate()
-            random.seed(seed)
-
-        name = '-'.join(
+    def _get_name(self) -> str:
+        return '-'.join(
             (
                 random.choice(self._adjectives),
-                *random.sample(self._nouns, 2)
+                *random.sample(self._nouns, 2),
             )
         )
 
-        if seed is not None:
-            random.setstate(previous_state)
+    def get_name(self, seed: int = None) -> str:
+        if seed is None:
+            return self._get_name()
 
-        return name
+        previous_state = random.getstate()
+        random.seed(seed)
+
+        try:
+            return self._get_name()
+        finally:
+            random.setstate(previous_state)
